@@ -1,0 +1,62 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: A sample template
+
+Parameters:
+  Instancename:
+    Description: Name of an EC2 instance(s)
+    Type: String
+
+Resources:
+  MyEC2Instance:
+    Type: 'AWS::EC2::Instance'
+    Properties:
+        ImageId: ami-0f34c5ae932e6f0e4
+        SecurityGroupIds: 
+            - !GetAtt "MyInstanceSecurityGroup.GroupId"
+        InstanceType: t2.micro
+        KeyName: !Ref MyKeyPair
+        BlockDeviceMappings:
+          - DeviceName: /dev/sdm
+            Ebs:
+              VolumeType: io1
+              Iops: 200
+              DeleteOnTermination: false
+              VolumeSize: 22
+        UserData: !Base64 |
+          #!/bin/bash
+          yum update -y
+          yum install -y httpd
+          systemctl start httpd
+          systemctl enable httpd
+          yum install -y git
+          git clone https://github.com/Ula2022/dptrealtime-html-web-app.git
+          sudo cp -r dptrealtime-html-web-app/* /var/www/html/
+
+
+        Tags:
+          - Key: "Name"
+            Value: !Ref Instancename
+
+  MyKeyPair:
+    Type: AWS::EC2::KeyPair
+    Properties:
+      KeyName: MyEC2Key        
+
+  MyInstanceSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Enable SSH access and HTTP traffic
+      SecurityGroupIngress:
+        - CidrIp: 0.0.0.0/0
+          IpProtocol: tcp
+          FromPort: 22
+          ToPort: 22
+        - CidrIp: 0.0.0.0/0
+          IpProtocol: tcp
+          FromPort: 80
+          ToPort: 80
+ 
+Outputs:
+  PublicIp:
+    Description: MyEC2Instance Public IP
+    Value: !GetAtt MyEC2Instance.PublicIp
