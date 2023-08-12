@@ -1,5 +1,4 @@
-Goal
-Apache Webserver on Linux Instance and hosted a simple HTML based web application.
+Deployment of an Apache Webserver on Linux Instance and hosted a simple HTML based web application.
 
 Source Code
 
