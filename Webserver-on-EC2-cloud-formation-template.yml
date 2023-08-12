@@ -14,7 +14,6 @@ Resources:
         SecurityGroupIds: 
             - !GetAtt "MyInstanceSecurityGroup.GroupId"
         InstanceType: t2.micro
-        KeyName: !Ref MyKeyPair
         BlockDeviceMappings:
           - DeviceName: /dev/sdm
             Ebs:
@@ -32,15 +31,9 @@ Resources:
           git clone https://github.com/Ula2022/dptrealtime-html-web-app.git
           sudo cp -r dptrealtime-html-web-app/* /var/www/html/
 
-
         Tags:
           - Key: "Name"
-            Value: !Ref Instancename
-
-  MyKeyPair:
-    Type: AWS::EC2::KeyPair
-    Properties:
-      KeyName: MyEC2Key        
+            Value: !Ref Instancename       
 
   MyInstanceSecurityGroup:
     Type: AWS::EC2::SecurityGroup
