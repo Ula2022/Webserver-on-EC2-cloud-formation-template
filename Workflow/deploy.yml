@@ -35,6 +35,27 @@ jobs:
       #     name: cicd-test-stack
       #     template: Webserver-on-EC2-cloud-formation-template.yaml
       #     no-fail-on-empty-changeset: "1"
-      #     parameter-overrides: "EC2InstanceType=t2.micro"
+      #     parameter-overrides: >-
+            AccessToken=${{ secrets.ACCESS_TOKEN }},
+            Repository=https://github.com/Ula2022/wildrydes-site
 
-      
+
+
+   # Push changes to repository
+      - name: Push changes to repository
+        shell: bash
+        run: |
+          git config --global user.email "oogunlesi2002@yahoo.co.uk"
+          git config --global user.name "Olakunle Ogunlesi"
+
+          echo "machine github.com login Ula2022 password ${{ secrets.ACCESS_TOKEN }}" > ~/.netrc
+
+          git clone https://github.com/Ula2022/Webserver-on-EC2-cloud-form.git
+          cd Webserver-on-EC2-cloud-form
+
+
+          
+          git add -A
+          current_date_time=$(date)
+          git diff --quiet HEAD || git commit -m "config updated: $current_date_time"
+          git push      
