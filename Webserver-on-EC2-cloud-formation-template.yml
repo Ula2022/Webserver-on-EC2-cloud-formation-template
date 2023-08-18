@@ -33,7 +33,9 @@ Resources:
 
         Tags:
           - Key: "Name"
-            Value: !Ref Instancename       
+            Value: !Ref Instancename  
+
+       
 
   MyInstanceSecurityGroup:
     Type: AWS::EC2::SecurityGroup
