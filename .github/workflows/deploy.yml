@@ -40,5 +40,5 @@ jobs:
           name: Webserver-on-EC2-cloud-formation-template
           template: Webserver-on-EC2-cloud-formation-template.yml
           no-fail-on-empty-changeset: "1"
-          parameter-overrides: "MyEC2InstanceType=t2.micro"
+          parameter-overrides: Instancename=MyEC2Instance
 
