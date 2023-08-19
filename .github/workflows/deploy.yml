@@ -2,9 +2,9 @@ name: 'Deploy to AWS CloudFormation'
 
 on: 
   push:
-    branches: [ master,staging,develop ]
+    branches: [ develop-branch ]
   # pull_request:
-  #   branches: [ master,staging,develop ]
+  #   branches: [ master ]
 
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
