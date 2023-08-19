@@ -37,6 +37,6 @@ jobs:
       - name: Deploy to AWS CloudFormation
         uses: aws-actions/aws-cloudformation-github-deploy@v1
         with:
-          name: Webserver-on-EC2-cloud-formation-template
+          name: Webserver-on-EC2-cloud-formation-stack
           template: Webserver-on-EC2-cloud-formation-template.yaml
           no-fail-on-empty-changeset: "1"
