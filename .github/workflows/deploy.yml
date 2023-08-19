@@ -2,9 +2,7 @@ name: 'Deploy to AWS CloudFormation'
 
 on: 
   push:
-    branches: [ master,staging,develop ]
-  # pull_request:
-  #   branches: [ master,staging,develop ]
+    branches: [ develop ]
 
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
@@ -17,21 +15,28 @@ jobs:
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
-      - name: Checkout code from master branch
+      - name: Checkout code from develop branch
         uses: actions/checkout@v2
+
+      - name: set up node.js 16.x
+        uses: actions/setup-node@v2
+        with:
+          node-version: 16
 
       # Configure AWS Credential
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v1
         with:
-          aws-access-key-id: ${{ secrets.ACCESS_KEY }}
-          aws-secret-access-key: ${{ secrets.ACCESS_KEY_SECRET }}
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID}}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: us-east-1
 
-      # Deploy to AWS CloudFormation our CFN stack
-      - name: Deploy task-one stack to AWS CloudFormation
+      # Deploy to AWS CloudFormation 
+      - name: Deploy to AWS CloudFormation
         uses: aws-actions/aws-cloudformation-github-deploy@v1
         with:
-          name: Webserver-on-EC2-cloud-formation-template-stack-v1
-          template: Webserver-on-EC2-cloud-formation-template.yaml
+          name: Webserver-on-EC2-cloud-formation-template
+          template: Webserver-on-EC2-cloud-formation-template.yml
           no-fail-on-empty-changeset: "1"
+          parameter-overrides: Instancename=MyEC2Instance
+
