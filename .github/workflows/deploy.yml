@@ -33,10 +33,10 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: us-east-1
 
-      # Deploy to AWS CloudFormation our CFN stack
+      # Deploy to AWS CloudFormation 
       - name: Deploy to AWS CloudFormation
         uses: aws-actions/aws-cloudformation-github-deploy@v1
         with:
-          name: Webserver-on-EC2-cloud-formation-stack
-          template: Webserver-on-EC2-cloud-formation-template.yaml
+          name: Webserver-on-EC2-cloud-formation-template
+          template: Webserver-on-EC2-cloud-formation-template.yml
           no-fail-on-empty-changeset: "1"
