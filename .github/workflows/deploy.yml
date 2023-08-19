@@ -20,6 +20,11 @@ jobs:
       - name: Checkout code from develop branch
         uses: actions/checkout@v2
 
+      - name: set up node.js 16.x
+        uses: actions/setup-node@v2
+        with:
+          node-version: 16
+
       # Configure AWS Credential
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v1
