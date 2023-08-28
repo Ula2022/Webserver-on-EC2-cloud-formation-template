@@ -6,6 +6,21 @@ Parameters:
     Description: Name of an EC2 instance(s)
     Type: String
 
+  VpcCIDR:
+    Type: String
+    Default: 172.31.0.0/16
+    Description: CIDR block for the VPC 
+
+  PublicSubnetCIDR:
+    Type: String
+    Default: 172.31.32.0/20
+    Description: CIDR block for the public subnet within the VPC 
+  
+  PrivateSubnetCIDR:
+    Type: String
+    Default: 172.31.0.0/20
+    Description: CIDR block for the private subnet within the VPC
+
 Resources:
   MyEC2Instance:
     Type: 'AWS::EC2::Instance'
@@ -14,6 +29,7 @@ Resources:
         SecurityGroupIds: 
             - !GetAtt "MyInstanceSecurityGroup.GroupId"
         InstanceType: t2.micro
+        SubnetId: !Ref PublicSubnet
         BlockDeviceMappings:
           - DeviceName: /dev/sdm
             Ebs:
@@ -34,24 +50,133 @@ Resources:
         Tags:
           - Key: "Name"
             Value: !Ref Instancename  
+          
+  MyEIP:
+    Type: 'AWS::EC2::EIP'
+    Properties:
+      InstanceId: !Ref MyEC2Instance
 
-       
+  MyVPC:
+    Type: AWS::EC2::VPC
+    Properties:
+      CidrBlock: !Ref VpcCIDR
+      EnableDnsHostnames: true
+      Tags:
+        - Key: Name
+          Value: MyVPC
 
+  PublicSubnet:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref MyVPC
+      CidrBlock: !Ref PublicSubnetCIDR
+      Tags:
+        - Key: Name
+          Value: PublicSubnet
+
+  PrivateSubnet:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref MyVPC
+      CidrBlock: !Ref PrivateSubnetCIDR
+      Tags:
+        - Key: Name
+          Value: PriavteSubnet
+
+  InternetGateway:
+    Type: AWS::EC2::InternetGateway
+    Properties:
+      Tags:
+        - Key: Name
+          Value: InternetGateway
+
+  VPCGatewayAttachment:
+    Type: AWS::EC2::VPCGatewayAttachment
+    Properties:
+      VpcId: !Ref MyVPC
+      InternetGatewayId: !Ref InternetGateway
+
+  PrivateRouteTable:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref MyVPC
+      Tags:
+        - Key: Name
+          Value: PrivateRouteTable
+
+  PrivateRoute:
+    Type: AWS::EC2::Route
+    DependsOn: PrivateSubnet
+    Properties:
+      RouteTableId: !Ref PrivateRouteTable
+      DestinationCidrBlock: !Ref PrivateSubnetCIDR
+      NatGatewayId: !Ref MyNATGateway
+
+
+  MyNATGatewayEIP:
+    Type: AWS::EC2::EIP
+    Properties:
+      Domain: !Ref MyVPC
+
+  MyNATGateway:
+    Type: AWS::EC2::NatGateway
+    Properties:
+      AllocationId: !GetAtt "MyNATGatewayEIP.AllocationId"
+      SubnetId: !Ref PublicSubnet
+
+  PrivateSubnetRouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId: !Ref PrivateSubnet
+      RouteTableId: !Ref PrivateRouteTable
+
+
+  PublicRouteTable:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref MyVPC
+      Tags:
+        - Key: Name
+          Value: PublicRouteTable
+
+  PublicRoute:
+    Type: AWS::EC2::Route
+    DependsOn: VPCGatewayAttachment
+    Properties:
+      RouteTableId: !Ref PublicRouteTable
+      DestinationCidrBlock: 0.0.0.0/0
+      GatewayId: !Ref InternetGateway
+
+  PublicSubnetRouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId: !Ref PublicSubnet
+      RouteTableId: !Ref PublicRouteTable
+     
   MyInstanceSecurityGroup:
     Type: AWS::EC2::SecurityGroup
     Properties:
+      VpcId: !Ref MyVPC
       GroupDescription: Enable SSH access and HTTP traffic
       SecurityGroupIngress:
-        - CidrIp: 0.0.0.0/0
+        - CidrIp:  0.0.0.0/0
           IpProtocol: tcp
           FromPort: 22
           ToPort: 22
-        - CidrIp: 0.0.0.0/0
+        - CidrIp:  0.0.0.0/0
           IpProtocol: tcp
           FromPort: 80
           ToPort: 80
- 
+  
 Outputs:
-  PublicIp:
-    Description: MyEC2Instance Public IP
-    Value: !GetAtt MyEC2Instance.PublicIp
+  InstanceId:
+    Description: Instance ID of the EC2 instance
+    Value: !Ref MyEC2Instance
+  PublicIP:
+    Description: Public IP address of the EC2 instance
+    Value:
+      Fn::GetAtt:
+        - MyEIP
+        - PublicIp
+
+    
