@@ -8,17 +8,17 @@ Parameters:
 
   VpcCIDR:
     Type: String
-    Default: 172.32.0.0/16
+    Default: 172.31.0.0/16
     Description: CIDR block for the VPC 
 
   PublicSubnetCIDR:
     Type: String
-    Default: 172.32.0.0/16
+    Default: 172.31.32.0/20
     Description: CIDR block for the public subnet within the VPC 
   
   PrivateSubnetCIDR:
     Type: String
-    Default: 172.32.0.0/16
+    Default: 172.31.0.0/20
     Description: CIDR block for the private subnet within the VPC
 
 Resources:
@@ -50,6 +50,11 @@ Resources:
         Tags:
           - Key: "Name"
             Value: !Ref Instancename  
+          
+  MyEIP:
+    Type: 'AWS::EC2::EIP'
+    Properties:
+      InstanceId: !Ref MyEC2Instance
 
   MyVPC:
     Type: AWS::EC2::VPC
@@ -65,7 +70,6 @@ Resources:
     Properties:
       VpcId: !Ref MyVPC
       CidrBlock: !Ref PublicSubnetCIDR
-      MapPublicIpOnLaunch: true
       Tags:
         - Key: Name
           Value: PublicSubnet
@@ -75,7 +79,6 @@ Resources:
     Properties:
       VpcId: !Ref MyVPC
       CidrBlock: !Ref PrivateSubnetCIDR
-      MapPublicIpOnLaunch: true
       Tags:
         - Key: Name
           Value: PriavteSubnet
@@ -106,19 +109,19 @@ Resources:
     DependsOn: PrivateSubnet
     Properties:
       RouteTableId: !Ref PrivateRouteTable
-      DestinationCidrBlock: 0.0.0.0/0
-      NatGatewayId: MyNATGatewayId 
+      DestinationCidrBlock: !Ref PrivateSubnetCIDR
+      NatGatewayId: !Ref MyNATGateway
 
 
   MyNATGatewayEIP:
     Type: AWS::EC2::EIP
     Properties:
-      Domain: vpc
+      Domain: !Ref MyVPC
 
   MyNATGateway:
     Type: AWS::EC2::NatGateway
     Properties:
-      AllocationId: !GetAtt MyNATGatewayEIP.AllocationId
+      AllocationId: !GetAtt "MyNATGatewayEIP.AllocationId"
       SubnetId: !Ref PublicSubnet
 
   PrivateSubnetRouteTableAssociation:
@@ -153,19 +156,27 @@ Resources:
   MyInstanceSecurityGroup:
     Type: AWS::EC2::SecurityGroup
     Properties:
+      VpcId: !Ref MyVPC
       GroupDescription: Enable SSH access and HTTP traffic
       SecurityGroupIngress:
-        - CidrIp: 0.0.0.0/0
+        - CidrIp:  0.0.0.0/0
           IpProtocol: tcp
           FromPort: 22
           ToPort: 22
-        - CidrIp: 0.0.0.0/0
+        - CidrIp:  0.0.0.0/0
           IpProtocol: tcp
           FromPort: 80
           ToPort: 80
- 
+  
 Outputs:
-  PublicIp:
-    Description: MyEC2Instance Public IP
-    Value: !GetAtt MyEC2Instance.PublicIp
+  InstanceId:
+    Description: Instance ID of the EC2 instance
+    Value: !Ref MyEC2Instance
+  PublicIP:
+    Description: Public IP address of the EC2 instance
+    Value:
+      Fn::GetAtt:
+        - MyEIP
+        - PublicIp
+
     
